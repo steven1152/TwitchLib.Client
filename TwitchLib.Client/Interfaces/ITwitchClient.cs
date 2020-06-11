@@ -232,10 +232,6 @@ namespace TwitchLib.Client.Interfaces
         /// </summary>
         event EventHandler<OnCommunitySubscriptionArgs> OnCommunitySubscription;
         /// <summary>
-        /// Occurs when [on gifted subscription usernotice received].
-        /// </summary>
-        event EventHandler<OnAnonGiftedSubscriptionArgs> OnAnonGiftedSubscription;
-        /// <summary>
         /// Occurs when [on message deleted].
         /// </summary>
         event EventHandler<OnMessageClearedArgs> OnMessageCleared;
@@ -309,13 +305,6 @@ namespace TwitchLib.Client.Interfaces
         /// <param name="overrideCheck">if set to <c>true</c> [override check].</param>
         void JoinChannel(string channel, bool overrideCheck = false);
         /// <summary>
-        /// Joins the room.
-        /// </summary>
-        /// <param name="channelId">The channel identifier.</param>
-        /// <param name="roomId">The room identifier.</param>
-        /// <param name="overrideCheck">if set to <c>true</c> [override check].</param>
-        void JoinRoom(string channelId, string roomId, bool overrideCheck = false);
-        /// <summary>
         /// Leaves the channel.
         /// </summary>
         /// <param name="channel">The channel.</param>
@@ -325,12 +314,6 @@ namespace TwitchLib.Client.Interfaces
         /// </summary>
         /// <param name="channel">The channel.</param>
         void LeaveChannel(string channel);
-        /// <summary>
-        /// Leaves the room.
-        /// </summary>
-        /// <param name="channelId">The channel identifier.</param>
-        /// <param name="roomId">The room identifier.</param>
-        void LeaveRoom(string channelId, string roomId);
 
         /// <summary>
         /// Called when [read line test].

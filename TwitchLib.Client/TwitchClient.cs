@@ -344,11 +344,6 @@ namespace TwitchLib.Client
         public event EventHandler<OnRaidNotificationArgs> OnRaidNotification;
 
         /// <summary>
-        /// Fires when a subscription is gifted  and anonymously in chat
-        /// </summary>
-        public event EventHandler<OnAnonGiftedSubscriptionArgs> OnAnonGiftedSubscription;
-
-        /// <summary>
         /// Fires when a subscription is gifted and announced in chat
         /// </summary>
         public event EventHandler<OnGiftedSubscriptionArgs> OnGiftedSubscription;
@@ -702,22 +697,6 @@ namespace TwitchLib.Client
         }
 
         /// <summary>
-        /// Joins the room.
-        /// </summary>
-        /// <param name="channelId">The channel identifier.</param>
-        /// <param name="roomId">The room identifier.</param>
-        /// <param name="overrideCheck">if set to <c>true</c> [override check].</param>
-        public void JoinRoom(string channelId, string roomId, bool overrideCheck = false)
-        {
-            if (!IsInitialized) HandleNotInitialized();
-            // Check to see if client is already in channel
-            if (JoinedChannels.FirstOrDefault(x => x.Channel.ToLower() == $"chatrooms:{channelId}:{roomId}" && !overrideCheck) != null)
-                return;
-            _joinChannelQueue.Enqueue(new JoinedChannel($"chatrooms:{channelId}:{roomId}"));
-            if (!_currentlyJoiningChannels)
-                QueueingJoinCheck();
-        }
-        /// <summary>
         /// Returns a JoinedChannel object using a passed string/&gt;.
         /// </summary>
         /// <param name="channel">String channel to search for.</param>
@@ -745,21 +724,6 @@ namespace TwitchLib.Client
             JoinedChannel joinedChannel = _joinedChannelManager.GetJoinedChannel(channel);
             if (joinedChannel != null)
                 _client.Send(Rfc2812.Part($"#{channel}"));
-        }
-
-        /// <summary>
-        /// Leaves the room.
-        /// </summary>
-        /// <param name="channelId">The channel identifier.</param>
-        /// <param name="roomId">The room identifier.</param>
-        public void LeaveRoom(string channelId, string roomId)
-        {
-            if (!IsInitialized) HandleNotInitialized();
-            string room = $"chatrooms:{channelId}:{roomId}";
-            Log($"Leaving channel: {room}");
-            JoinedChannel joinedChannel = _joinedChannelManager.GetJoinedChannel(room);
-            if (joinedChannel != null)
-                _client.Send(Rfc2812.Part($"#{room}"));
         }
 
         /// <summary>
@@ -916,7 +880,11 @@ namespace TwitchLib.Client
                 _joinTimer.Elapsed += JoinChannelTimeout;
                 _awaitingJoins = new List<KeyValuePair<string, DateTime>>();
             }
-            _awaitingJoins.Add(new KeyValuePair<string, DateTime>(channel, DateTime.Now));
+            // channel is ToLower()'d because ROOMSTATE (which is the event the client uses to remove
+            // this channel from _awaitingJoins list) contains the username as always lowercase. This means
+            // if we don't ToLower(), the channel never gets removed, and FailureToReceiveJoinConfirmation
+            // fires.
+            _awaitingJoins.Add(new KeyValuePair<string, DateTime>(channel.ToLower(), DateTime.Now));
             if (!_joinTimer.Enabled)
                 _joinTimer.Start();
         }
@@ -1218,7 +1186,7 @@ namespace TwitchLib.Client
         /// <param name="ircMessage">The irc message.</param>
         private void HandleClearMsg(IrcMessage ircMessage)
         {
-            OnMessageCleared?.Invoke(this, new OnMessageClearedArgs { Channel = ircMessage.Channel, Message = ircMessage.Message, TargetMessageId = ircMessage.ToString().Split('=')[2].Split(' ')[0] });
+            OnMessageCleared?.Invoke(this, new OnMessageClearedArgs { Channel = ircMessage.Channel, Message = ircMessage.Message, TargetMessageId = ircMessage.ToString().Split('=')[3].Split(';')[0], TmiSentTs = ircMessage.ToString().Split('=')[4].Split(' ')[0] });
         }
 
         /// <summary>
@@ -1351,10 +1319,6 @@ namespace TwitchLib.Client
                             UnaccountedFor(ircMessage.ToString());
                             break;
                     }
-                    break;
-                case MsgIds.AnonSubGift:
-                    AnonGiftedSubscription anonGiftedSubscription = new AnonGiftedSubscription(ircMessage);
-                    OnAnonGiftedSubscription?.Invoke(this, new OnAnonGiftedSubscriptionArgs { AnonGiftedSubscription = anonGiftedSubscription, Channel = ircMessage.Channel });
                     break;
                 case MsgIds.SubGift:
                     GiftedSubscription giftedSubscription = new GiftedSubscription(ircMessage);

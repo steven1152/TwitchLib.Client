@@ -8,6 +8,8 @@ namespace TwitchLib.Client.Models
 {
     public class GiftedSubscription
     {
+        private const string AnonymousGifterUserId = "274598607";
+
         public List<KeyValuePair<string, string>> Badges { get; }
 
         public List<KeyValuePair<string, string>> BadgeInfo { get; }
@@ -26,15 +28,13 @@ namespace TwitchLib.Client.Models
 
         public bool IsTurbo { get; }
 
+        public bool IsAnonymous { get; }
+
         public string Login { get; }
 
         public string MsgId { get; }
 
-        public string MsgParamCumulativeMonths { get; }
-
-        public bool MsgParamShouldShareStreak { get; }
-
-        public string MsgParamStreakMonths { get; }
+        public string MsgParamMonths { get; }
 
         public string MsgParamRecipientDisplayName { get; }
 
@@ -93,14 +93,8 @@ namespace TwitchLib.Client.Models
                     case Tags.MsgId:
                         MsgId = tagValue;
                         break;
-                    case Tags.MsgParamCumulativeMonths:
-                        MsgParamCumulativeMonths = tagValue;
-                        break;
-                    case Tags.MsgParamStreakMonths:
-                        MsgParamStreakMonths = tagValue;
-                        break;
-                    case Tags.MsgParamShouldShareStreak:
-                        MsgParamShouldShareStreak = Common.Helpers.ConvertToBool(tagValue);
+                    case Tags.MsgParamMonths:
+                        MsgParamMonths = tagValue;
                         break;
                     case Tags.MsgParamRecipientDisplayname:
                         MsgParamRecipientDisplayName = tagValue;
@@ -151,6 +145,10 @@ namespace TwitchLib.Client.Models
                         break;
                     case Tags.UserId:
                         UserId = tagValue;
+                        if (UserId == AnonymousGifterUserId)
+                        {
+                            IsAnonymous = true;
+                        }
                         break;
                     case Tags.UserType:
                         switch (tagValue)
@@ -186,9 +184,7 @@ namespace TwitchLib.Client.Models
             string login,
             bool isModerator,
             string msgId,
-            string msgParamCumulativeMonths,
-            string msgParamStreakMonths,
-            bool msgParamShouldShareStreak,
+            string msgParamMonths,
             string msgParamRecipientDisplayName,
             string msgParamRecipientId,
             string msgParamRecipientUserName,
@@ -212,9 +208,7 @@ namespace TwitchLib.Client.Models
             Login = login;
             IsModerator = isModerator;
             MsgId = msgId;
-            MsgParamCumulativeMonths = msgParamCumulativeMonths;
-            MsgParamStreakMonths = msgParamStreakMonths;
-            MsgParamShouldShareStreak = msgParamShouldShareStreak;
+            MsgParamMonths = msgParamMonths;
             MsgParamRecipientDisplayName = msgParamRecipientDisplayName;
             MsgParamRecipientId = msgParamRecipientId;
             MsgParamRecipientUserName = msgParamRecipientUserName;
